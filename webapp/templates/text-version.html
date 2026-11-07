@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+<style>
+  .speech-wrap { max-width: 960px; margin: 0 auto; padding: 10px 16px 60px; }
+
+  .speech-title {
+    text-align: center;
+    color: #4E2A84;
+    font-weight: 700;
+    font-size: 1.9rem;
+    margin: 18px 0 14px;
+  }
+
+  .speech-progress-text {
+    text-align: center;
+    color: #555;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+  }
+  .speech-progress-bar {
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 0 auto 26px;
+    max-width: 100%;
+  }
+  .speech-progress-fill {
+    height: 100%;
+    background: #4E2A84;
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+
+  .card-block {
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    padding: 22px 26px;
+    margin-bottom: 22px;
+  }
+  .card-label {
+    color: #4E2A84;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+  }
+  .speech-text { color: #3a3a3a; line-height: 1.65; font-size: 1.02rem; white-space: pre-wrap; }
+
+  .hint-block { background: #aecbf5; }
+  .hint-block .card-label { border-bottom-color: rgba(78,42,132,0.25); }
+  .hint-list { margin: 0; padding-left: 22px; color: #1f2937; }
+  .hint-list li { margin-bottom: 12px; line-height: 1.5; }
+
+  .choice-row { display: flex; justify-content: center; gap: 22px; margin: 8px 0 18px; flex-wrap: wrap; }
+  .choice-btn {
+    min-width: 200px;
+    padding: 16px 22px;
+    border: 2px solid #4E2A84;
+    background: #ffffff;
+    color: #4E2A84;
+    font-weight: 700;
+    font-size: 1.05rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .choice-btn:hover { background: #f3eefb; }
+  .choice-btn.selected { background: #4E2A84; color: #ffffff; }
+  .choice-btn:disabled { cursor: default; opacity: 0.6; }
+
+  .submit-row { display: flex; justify-content: center; }
+  .submit-btn {
+    min-width: 220px;
+    padding: 14px 22px;
+    border: none;
+    border-radius: 8px;
+    background: #b9a9d6;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    cursor: not-allowed;
+    transition: background 0.15s ease;
+  }
+  .submit-btn.enabled { background: #4E2A84; cursor: pointer; }
+  .submit-btn.enabled:hover { background: #3d2068; }
+
+  .result-block {
+    text-align: center;
+    margin: 6px 0 18px;
+    font-size: 1.1rem;
+    display: none;
+  }
+  .result-correct { color: #15803d; font-weight: 700; }
+  .result-wrong { color: #b91c1c; font-weight: 700; }
+  .result-score { color: #555; font-size: 0.95rem; margin-top: 6px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="speech-wrap">
+  <h1 class="speech-title">Was this text written by AI or a Human?</h1>
+
+  <div class="speech-progress-text">Trial {{ current_trial }} of {{ total }}</div>
+  <div class="speech-progress-bar">
+    <div class="speech-progress-fill" style="width: {{ (current_trial / total * 100) | round(1) }}%;"></div>
+  </div>
+
+  <div class="card-block">
+    <div class="card-label">Text</div>
+    <div class="speech-text">{{ text_body }}</div>
+  </div>
+
+  {% if hint_bullets %}
+  <div class="card-block hint-block">
+    <div class="card-label">Explanation Hint</div>
+    <ul class="hint-list">
+      {% for b in hint_bullets %}<li>{{ b }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="choice-row">
+    <button type="button" class="choice-btn" data-choice="human">Human-written</button>
+    <button type="button" class="choice-btn" data-choice="ai">AI-written</button>
+  </div>
+
+  <div class="result-block" id="result-block">
+    <div id="result-line"></div>
+    <div class="result-score" id="result-score"></div>
+  </div>
+
+  <div class="submit-row">
+    <button type="button" class="submit-btn" id="submit-btn" disabled>Submit</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  var STIMULUS_INDEX = {{ stimulus_index }};
+  var selected = null;
+  var answered = false;
+  var choiceBtns = document.querySelectorAll('.choice-btn');
+  var submitBtn = document.getElementById('submit-btn');
+
+  choiceBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (answered) return;
+      choiceBtns.forEach(function (b) { b.classList.remove('selected'); });
+      btn.classList.add('selected');
+      selected = btn.getAttribute('data-choice');
+      submitBtn.classList.add('enabled');
+      submitBtn.disabled = false;
+    });
+  });
+
+  function truthPhrase(truth) {
+    return (truth === 'AI') ? 'written by an AI' : 'written by a Human';
+  }
+
+  submitBtn.addEventListener('click', function () {
+    if (answered) { return; }
+    if (!selected) { return; }
+    submitBtn.disabled = true;
+
+    fetch('/text-guess', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stimulus_index: STIMULUS_INDEX, guess: selected })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (resp) {
+      if (!resp.success) {
+        submitBtn.disabled = false;
+        alert(resp.error || 'Something went wrong. Please try again.');
+        return;
+      }
+      answered = true;
+      choiceBtns.forEach(function (b) { b.disabled = true; });
+
+      var block = document.getElementById('result-block');
+      var line = document.getElementById('result-line');
+      var score = document.getElementById('result-score');
+      if (resp.correct) {
+        line.innerHTML = '<span class="result-correct">✓ Correct — this text was ' + truthPhrase(resp.truth) + '.</span>';
+      } else {
+        line.innerHTML = '<span class="result-wrong">✗ Incorrect — this text was ' + truthPhrase(resp.truth) + '.</span>';
+      }
+      score.textContent = 'You have correctly identified ' + resp.score_correct + ' of ' + resp.score_total + ' so far.';
+      block.style.display = 'block';
+
+      submitBtn.textContent = (resp.redirect ? 'See results' : 'Next');
+      submitBtn.classList.add('enabled');
+      submitBtn.disabled = false;
+      submitBtn.onclick = function () {
+        window.location.href = resp.redirect ? resp.redirect : '/';
+      };
+    })
+    .catch(function () {
+      submitBtn.disabled = false;
+      alert('Network error. Please try again.');
+    });
+  });
+})();
+</script>
+{% endblock %}

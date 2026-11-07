@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 720px; margin: 80px auto; text-align: center; padding: 0 16px;">
+  <h1 style="color: #4E2A84; font-weight: 700; margin-bottom: 18px;">Page not found</h1>
+  <p style="font-size: 1.1rem; color: #3a3a3a;">
+    The page you requested doesn't exist. <a href="{{ url_for('text_home') }}" style="color: #4E2A84;">Return to the task</a>.
+  </p>
+</div>
+{% endblock %}

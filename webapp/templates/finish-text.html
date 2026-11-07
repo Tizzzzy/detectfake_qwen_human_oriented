@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 720px; margin: 60px auto; text-align: center; padding: 0 16px;">
+  <h1 style="color: #4E2A84; font-weight: 700; margin-bottom: 18px;">Thank you!</h1>
+  <p style="font-size: 1.1rem; color: #3a3a3a; line-height: 1.6;">
+    You have completed all {{ max_stimuli }} trials.
+  </p>
+  <p style="font-size: 1.25rem; color: #4E2A84; font-weight: 700; margin-top: 22px;">
+    You correctly identified {{ score }} of {{ max_stimuli }} texts.
+  </p>
+  <p style="color: #666; margin-top: 28px;">You may now close this window.</p>
+</div>
+{% endblock %}

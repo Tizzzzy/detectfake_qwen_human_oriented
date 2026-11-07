@@ -1,0 +1,172 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description"
+    content="Can you tell AI-written text from human-written text? Detect Fakes challenges you to spot AI-generated social-media posts.">
+  <meta name="keywords"
+    content="detect fakes, AI text, human vs AI, machine perception, human perception, AI detection">
+  <title>AI or Human? Can You Tell?</title>
+
+  <!-- Bootstrap CSS (CDN, for layout container/grid only) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  {% block head_extra %}{% endblock %}
+</head>
+
+<style>
+  #main-navbar {
+    display: block !important;
+    background-color: white !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 99999 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    min-height: 30px !important;
+    padding: 3px 0 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  }
+
+  #main-navbar .container {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+
+  #main-navbar .navbar-brand {
+    color: #4E2A84 !important;
+    font-weight: bold !important;
+    font-size: 1.2rem !important;
+    text-decoration: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #main-navbar .nav-links {
+    display: flex !important;
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #main-navbar .nav-item {
+    margin-left: 1.5rem !important;
+  }
+
+  #main-navbar .nav-link {
+    color: #666 !important;
+    text-decoration: none !important;
+    font-weight: 400 !important;
+    font-size: 0.9rem !important;
+  }
+
+  #main-navbar .nav-link:hover {
+    color: #4E2A84 !important;
+  }
+
+  @media (max-width: 768px) {
+    #main-navbar .nav-links {
+      display: none !important;
+    }
+
+    #main-navbar.mobile-open .nav-links {
+      display: flex !important;
+      flex-direction: column !important;
+      position: absolute !important;
+      top: 100% !important;
+      left: 0 !important;
+      right: 0 !important;
+      background: white !important;
+      padding: 1rem !important;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    }
+
+    #main-navbar .nav-item {
+      margin: 0.5rem 0 !important;
+    }
+  }
+
+  body {
+    padding-top: 25px !important;
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background-color: whitesmoke !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  }
+
+  .main-content {
+    flex: 1 0 auto !important;
+    padding-top: 5px !important;
+  }
+
+  .footer {
+    flex-shrink: 0 !important;
+    width: 100% !important;
+    padding: 20px 0 !important;
+    text-align: center !important;
+    color: #888 !important;
+    font-size: 0.85rem !important;
+  }
+</style>
+
+<body>
+  <!-- Simplified Navigation -->
+  <nav id="main-navbar">
+    <div class="container">
+      {% if request.path in ['/about', '/informed-consent', '/instructions'] %}
+        <a href="{{ url_for('text_home') }}" class="navbar-brand" style="text-decoration: none; color: inherit;">DETECT FAKES</a>
+      {% else %}
+        <span class="navbar-brand">DETECT FAKES</span>
+      {% endif %}
+      <ul class="nav-links">
+        <li class="nav-item">
+          <a class="nav-link" href="/about">ABOUT</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/informed-consent">CONSENT</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/instructions">INSTRUCTIONS</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main-content container">
+    {% block content %}
+    {% endblock %}
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      Northwestern University &middot; Human-AI Collaboration Lab
+    </div>
+  </footer>
+
+  <script>
+    // Simple mobile menu toggle
+    document.addEventListener('DOMContentLoaded', function() {
+      const navbar = document.getElementById('main-navbar');
+      const brand = navbar.querySelector('.navbar-brand');
+
+      brand.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768) {
+          navbar.classList.toggle('mobile-open');
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
